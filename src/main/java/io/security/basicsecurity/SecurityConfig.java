@@ -2,6 +2,7 @@ package io.security.basicsecurity;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -27,14 +28,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     UserDetailsService userDetailsService;
 
-    @Override
+//    @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
                 .anyRequest().authenticated();
         http
                 .formLogin()
-//                .loginPage("/loginPage")
+                .loginPage("/loginPage")
                 .defaultSuccessUrl("/")
                 .failureForwardUrl("/login")
                 .usernameParameter("userId")
@@ -54,7 +55,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         response.sendRedirect("/login");
                     }
                 })
-                .permitAll();
+                .permitAll()
+        ;
+
         http
                 .logout()
                 .logoutUrl("/logout")
@@ -80,5 +83,40 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .alwaysRemember(true)
                 .userDetailsService(userDetailsService)
         ;
+
+        http
+                .sessionManagement()
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(true)
+//                .expiredUrl("/expired")
+        ;
+
+        // 세션 관리 기능(세션 고정 보호)
+        http
+                .sessionManagement()
+                .sessionFixation().changeSessionId()
+        ;
     }
+
+    // 권한 설정 표현식
+
+    /*@Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+
+        auth.inMemoryAuthentication().withUser("user").password("{noop}1111").roles("USER");
+        auth.inMemoryAuthentication().withUser("sys").password("{noop}1111").roles("SYS");
+        auth.inMemoryAuthentication().withUser("admin").password("{noop}1111").roles("ADMIN");
+    }
+
+    //    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .antMatchers("/user").hasRole("USER")
+                .antMatchers("/admin/pay").hasRole("ADMIN")
+                .antMatchers("/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")
+                .anyRequest().authenticated();
+        http
+                .formLogin();
+    }*/
 }
